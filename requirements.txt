@@ -1,0 +1,13 @@
+# Core dependencies
+requests>=2.31.0
+Pillow>=10.0.0
+python-dotenv>=1.0.0
+PyYAML>=6.0
+
+# Scheduling
+schedule>=1.2.0
+
+# Optional: For actual E-ink hardware support
+# Uncomment when you have the hardware:
+# RPi.GPIO>=0.7.1
+# spidev>=3.6

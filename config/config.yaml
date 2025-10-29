@@ -1,0 +1,36 @@
+# Weather E-ink Dashboard Configuration
+
+location:
+  city: "Seoul"
+  country: "KR"
+  latitude: 37.5665
+  longitude: 126.9780
+  timezone: "Asia/Seoul"
+
+weather_api:
+  provider: "openweathermap"  # openweathermap or kma
+  update_interval: 3600  # seconds (1 hour)
+  language: "kr"
+
+display:
+  width: 800
+  height: 480
+  mode: "simulation"  # simulation or hardware
+  color_mode: "bw"  # bw (black/white), bwr (black/white/red), 7color
+  rotation: 0  # 0, 90, 180, 270
+
+output:
+  directory: "output"
+  filename_pattern: "weather_{timestamp}.png"
+  keep_history: true
+  max_history_files: 24  # Keep last 24 images
+
+ui:
+  show_temperature: true
+  show_humidity: true
+  show_wind: true
+  show_pressure: true
+  show_forecast: true
+  forecast_hours: 12
+  date_format: "%Y년 %m월 %d일 %H:%M"
+  temperature_unit: "celsius"  # celsius or fahrenheit
