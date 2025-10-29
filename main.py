@@ -140,10 +140,33 @@ class WeatherDashboard:
 
     def _update_hardware_display(self, filepath: str):
         """하드웨어 디스플레이 업데이트"""
-        print("🔌 하드웨어 디스플레이 업데이트...")
-        print("⚠️  하드웨어 모드는 아직 구현되지 않았습니다.")
-        print("   E-ink 디스플레이가 연결되면 이 부분을 구현하세요.")
-        # TODO: 실제 E-ink 디스플레이 업데이트 코드 추가
+        print("\n🔌 하드웨어 디스플레이 업데이트...")
+
+        try:
+            from src.hardware_display import HardwareDisplay
+
+            # E-Paper 모델 가져오기 (config에서)
+            model = self.config["display"].get("epaper_model", "7in5_V2")
+
+            # 하드웨어 디스플레이 초기화 및 업데이트
+            display = HardwareDisplay(model=model)
+            display.init()
+            display.display_image(filepath)
+            display.sleep()
+
+            print("✅ 하드웨어 디스플레이 업데이트 완료!\n")
+
+        except ImportError as e:
+            print(f"⚠️  하드웨어 모드 오류: {e}")
+            print("\n해결 방법:")
+            print("  1. Waveshare 라이브러리 설치: pip install waveshare-epd")
+            print("  2. 또는 config.yaml에서 mode를 'simulation'으로 변경")
+            print("  3. 자세한 설치 방법은 HARDWARE_SETUP.md 참고\n")
+
+        except Exception as e:
+            print(f"❌ 디스플레이 업데이트 실패: {e}")
+            import traceback
+            traceback.print_exc()
 
     def run_once(self):
         """한 번만 실행"""

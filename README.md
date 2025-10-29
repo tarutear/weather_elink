@@ -53,9 +53,20 @@ python main.py --daemon
 
 ## 지원 하드웨어
 
-- Raspberry Pi + Waveshare E-Paper
-- Raspberry Pi + Pimoroni Inky Impression
-- 시뮬레이션 모드 (하드웨어 없이 이미지만 생성)
+### 한국에서 구매 가능한 제품 ✅
+
+**Waveshare E-Paper HAT 시리즈** (디바이스마트, 엘레파츠, 쿠팡)
+- **7.5inch (800×480)** - 추천! 현재 코드와 완벽 호환 (~7만원)
+- **4.2inch (400×300)** - 적당한 크기 (~4만원)
+- **2.9inch (296×128)** - 테스트용 (~2.5만원)
+
+**해외 직구**
+- Pimoroni Inky Impression 7.3" (~20만원)
+
+**시뮬레이션 모드**
+- 하드웨어 없이 이미지만 생성 (무료!)
+
+자세한 구매 가이드는 `KOREAN_PRODUCTS.md` 참고
 
 ## 라이선스
 

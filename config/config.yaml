@@ -18,6 +18,7 @@ display:
   mode: "simulation"  # simulation or hardware
   color_mode: "bw"  # bw (black/white), bwr (black/white/red), 7color
   rotation: 0  # 0, 90, 180, 270
+  epaper_model: "7in5_V2"  # Waveshare E-Paper 모델: 7in5_V2, 4in2, 2in9_V2 등
 
 output:
   directory: "output"
