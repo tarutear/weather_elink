@@ -27,29 +27,30 @@ weather_elink/
 └── main.py
 ```
 
-## 설치
+## 빠른 시작
 
+### 🆕 Pimoroni Inky Impression 사용자
+**INKY_SETUP_GUIDE.md** 또는 **QUICK_START.md**를 참고하세요!
+
+### 일반 설정
 ```bash
+# 의존성 설치
 pip install -r requirements.txt
-```
 
-## 설정
+# 하드웨어별 라이브러리 설치
+pip install inky[rpi,fonts]        # Inky Impression용
+# 또는
+pip install waveshare-epd          # Waveshare용
 
-`config/config.yaml` 파일에서 다음을 설정하세요:
-- 위치 (위도/경도 또는 도시명)
-- API 키
-- 업데이트 주기
-- 디스플레이 설정
+# API 키 설정
+cp .env.example .env
+nano .env  # OPENWEATHER_API_KEY 입력
 
-## 사용법
-
-```bash
-# 한 번 실행 (테스트용)
+# 실행!
 python main.py
-
-# 백그라운드에서 자동 업데이트
-python main.py --daemon
 ```
+
+자세한 설정은 **SETUP_GUIDE.md** 참고
 
 ## 지원 하드웨어
 
@@ -60,13 +61,21 @@ python main.py --daemon
 - **4.2inch (400×300)** - 적당한 크기 (~4만원)
 - **2.9inch (296×128)** - 테스트용 (~2.5만원)
 
-**해외 직구**
-- Pimoroni Inky Impression 7.3" (~20만원)
+**해외 직구** (7색 지원!)
+- **Pimoroni Inky Impression 7.3"** (~20만원) ⭐ 7색!
+  - 800×480 해상도
+  - Black, White, Red, Yellow, Blue, Green, Orange
+  - 설정 가이드: `INKY_SETUP_GUIDE.md`
 
 **시뮬레이션 모드**
 - 하드웨어 없이 이미지만 생성 (무료!)
 
-자세한 구매 가이드는 `KOREAN_PRODUCTS.md` 참고
+### 📖 가이드 문서
+- **QUICK_START.md** - 어디서부터 시작할지 모를 때
+- **INKY_SETUP_GUIDE.md** - Inky Impression 전용 가이드
+- **KOREAN_PRODUCTS.md** - 한국 제품 구매 가이드
+- **SETUP_GUIDE.md** - 상세 설치 가이드
+- **HARDWARE_SETUP.md** - Waveshare 하드웨어 가이드
 
 ## 라이선스
 

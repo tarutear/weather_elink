@@ -143,25 +143,34 @@ class WeatherDashboard:
         print("\n🔌 하드웨어 디스플레이 업데이트...")
 
         try:
-            from src.hardware_display import HardwareDisplay
+            display_type = self.config["display"].get("display_type", "waveshare")
 
-            # E-Paper 모델 가져오기 (config에서)
-            model = self.config["display"].get("epaper_model", "7in5_V2")
+            if display_type == "inky":
+                # Pimoroni Inky Impression (7색)
+                print("   디스플레이: Pimoroni Inky Impression")
+                from src.inky_display import InkyDisplay
+                display = InkyDisplay()
+                display.display_image(filepath)
 
-            # 하드웨어 디스플레이 초기화 및 업데이트
-            display = HardwareDisplay(model=model)
-            display.init()
-            display.display_image(filepath)
-            display.sleep()
+            else:
+                # Waveshare E-Paper
+                print(f"   디스플레이: Waveshare E-Paper")
+                from src.hardware_display import HardwareDisplay
+                model = self.config["display"].get("epaper_model", "7in5_V2")
+                display = HardwareDisplay(model=model)
+                display.init()
+                display.display_image(filepath)
+                display.sleep()
 
             print("✅ 하드웨어 디스플레이 업데이트 완료!\n")
 
         except ImportError as e:
             print(f"⚠️  하드웨어 모드 오류: {e}")
             print("\n해결 방법:")
-            print("  1. Waveshare 라이브러리 설치: pip install waveshare-epd")
-            print("  2. 또는 config.yaml에서 mode를 'simulation'으로 변경")
-            print("  3. 자세한 설치 방법은 HARDWARE_SETUP.md 참고\n")
+            print("  Inky: pip install inky[rpi,fonts]")
+            print("  Waveshare: pip install waveshare-epd")
+            print("  또는 config.yaml에서 mode를 'simulation'으로 변경")
+            print("  자세한 설치 방법은 INKY_SETUP_GUIDE.md 또는 HARDWARE_SETUP.md 참고\n")
 
         except Exception as e:
             print(f"❌ 디스플레이 업데이트 실패: {e}")

@@ -1,4 +1,5 @@
 # Weather E-ink Dashboard Configuration
+# Pimoroni Inky Impression 7.3" 전용 설정
 
 location:
   city: "Seoul"
@@ -15,11 +16,10 @@ weather_api:
 display:
   width: 800
   height: 480
-  mode: "simulation"  # simulation or hardware
-  color_mode: "bw"  # bw (black/white), bwr (black/white/red), 7color
+  mode: "hardware"  # Inky를 사용하려면 "hardware"로 설정
+  color_mode: "7color"  # Inky Impression은 7색 지원!
   rotation: 0  # 0, 90, 180, 270
-  display_type: "inky"  # "inky" (Pimoroni Inky Impression) or "waveshare"
-  epaper_model: "7in5_V2"  # Waveshare 전용: 7in5_V2, 4in2, 2in9_V2 등
+  display_type: "inky"  # Pimoroni Inky Impression
 
 output:
   directory: "output"

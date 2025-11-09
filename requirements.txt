@@ -9,5 +9,11 @@ schedule>=1.2.0
 
 # Optional: For actual E-ink hardware support
 # Uncomment when you have the hardware:
+
+# For Pimoroni Inky Impression (7색 디스플레이)
+# inky[rpi,fonts]>=1.5.0
+
+# For Waveshare E-Paper
 # RPi.GPIO>=0.7.1
 # spidev>=3.6
+# waveshare-epd
