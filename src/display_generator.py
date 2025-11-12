@@ -71,13 +71,16 @@ class DisplayGenerator:
                     break
 
             if font_path:
-                self.font_large = ImageFont.truetype(font_path, 72)
-                self.font_medium = ImageFont.truetype(font_path, 36)
-                self.font_small = ImageFont.truetype(font_path, 24)
-                self.font_tiny = ImageFont.truetype(font_path, 18)
+                # InkyPi 스타일: 더 큰 폰트
+                self.font_xlarge = ImageFont.truetype(font_path, 100)  # 온도용
+                self.font_large = ImageFont.truetype(font_path, 48)    # 헤더용
+                self.font_medium = ImageFont.truetype(font_path, 32)   # 정보용
+                self.font_small = ImageFont.truetype(font_path, 22)    # 레이블용
+                self.font_tiny = ImageFont.truetype(font_path, 16)     # 예보용
             else:
                 # 폰트를 찾지 못한 경우 기본 폰트 사용
                 print("⚠️  한글 폰트를 찾을 수 없습니다. 기본 폰트를 사용합니다.")
+                self.font_xlarge = ImageFont.load_default()
                 self.font_large = ImageFont.load_default()
                 self.font_medium = ImageFont.load_default()
                 self.font_small = ImageFont.load_default()
@@ -85,6 +88,7 @@ class DisplayGenerator:
 
         except Exception as e:
             print(f"폰트 로드 실패: {e}")
+            self.font_xlarge = ImageFont.load_default()
             self.font_large = ImageFont.load_default()
             self.font_medium = ImageFont.load_default()
             self.font_small = ImageFont.load_default()
@@ -136,26 +140,42 @@ class DisplayGenerator:
         )
 
     def _draw_header(self, current: Dict):
-        """헤더 그리기 (위치, 날짜/요일)"""
+        """헤더 그리기 (위치, 날짜/요일) - InkyPi 스타일"""
         # 현재 시간
         now = datetime.now()
-        weekday_kr = ["월", "화", "수", "목", "금", "토", "일"][now.weekday()]
-        date_str = now.strftime(f"%Y년 %m월 %d일 ({weekday_kr})")
+        weekday_kr = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"][now.weekday()]
 
-        # 위치 + 날짜를 한 줄에
+        # 위치 (큰 글씨)
         location = current.get("location", "수원")
-        header_text = f"{location}  ·  {date_str}"
-
-        # 중앙 정렬
-        bbox = self.draw.textbbox((0, 0), header_text, font=self.font_medium)
+        bbox = self.draw.textbbox((0, 0), location, font=self.font_large)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
 
         self.draw.text(
-            (x, 15),
-            header_text,
+            (x, 10),
+            location,
             fill=self.COLOR_BLACK,
-            font=self.font_medium
+            font=self.font_large
+        )
+
+        # 날짜와 요일 (작은 글씨)
+        date_str = now.strftime(f"%Y년 %m월 %d일 {weekday_kr}")
+        bbox = self.draw.textbbox((0, 0), date_str, font=self.font_small)
+        text_width = bbox[2] - bbox[0]
+        x = (self.width - text_width) // 2
+
+        self.draw.text(
+            (x, 65),
+            date_str,
+            fill=self.COLOR_BLACK,
+            font=self.font_small
+        )
+
+        # 구분선
+        self.draw.line(
+            [(30, 100), (self.width - 30, 100)],
+            fill=self.COLOR_BLACK,
+            width=2
         )
 
     def _draw_current_weather(self, current: Dict):
@@ -299,54 +319,53 @@ class DisplayGenerator:
         )
 
     def _draw_current_weather_large(self, current: Dict):
-        """현재 날씨 크게 그리기 (좌측 영역)"""
-        # 날씨 아이콘 (큰 원으로 표시)
-        icon_x, icon_y = 100, 120
-        icon_radius = 60
+        """현재 날씨 크게 그리기 (좌측 영역) - InkyPi 스타일"""
+        start_y = 120
 
-        # 원 그리기 (주황색 톤, E-ink는 그레이스케일로 표현됨)
+        # 날씨 아이콘 (더 큰 원)
+        icon_x, icon_y = 120, start_y + 70
+        icon_radius = 70
+
+        # 원 그리기
         self.draw.ellipse(
             [(icon_x - icon_radius, icon_y - icon_radius),
              (icon_x + icon_radius, icon_y + icon_radius)],
-            fill=200, outline=self.COLOR_BLACK, width=3
+            fill=220, outline=self.COLOR_BLACK, width=4
         )
 
-        # 큰 온도 표시
+        # 온도 - 매우 큰 글씨
         temp_text = f"{current['temperature']}°"
-        temp_bbox = self.draw.textbbox((0, 0), temp_text, font=self.font_large)
-        temp_width = temp_bbox[2] - temp_bbox[0]
-
         self.draw.text(
-            (icon_x + icon_radius + 30, icon_y - 40),
+            (icon_x + icon_radius + 30, icon_y - 60),
             temp_text,
             fill=self.COLOR_BLACK,
-            font=self.font_large
+            font=self.font_xlarge
         )
 
         # 체감 온도
-        feels_text = f"Feels Like {current['feels_like']}°"
+        feels_text = f"체감 {current['feels_like']}°"
         self.draw.text(
-            (40, icon_y + icon_radius + 20),
+            (50, icon_y + icon_radius + 25),
             feels_text,
             fill=self.COLOR_BLACK,
-            font=self.font_small
+            font=self.font_medium
         )
 
         # 날씨 설명
         desc = current.get("weather_description", "")
         self.draw.text(
-            (40, icon_y + icon_radius + 55),
+            (50, icon_y + icon_radius + 65),
             desc,
             fill=self.COLOR_BLACK,
-            font=self.font_small
+            font=self.font_medium
         )
 
     def _draw_weather_details(self, current: Dict):
-        """세부 날씨 정보 그리기 (우측 영역)"""
-        details_x = self.width // 2 + 50
-        start_y = 80
+        """세부 날씨 정보 그리기 (우측 영역) - InkyPi 스타일"""
+        details_x = self.width // 2 + 40
+        start_y = 125
 
-        # 텍스트 레이블과 정보들을 세로로 배치
+        # 그리드 레이아웃 (2열)
         details = [
             ("일출", f"{current.get('sunrise', 'N/A')}"),
             ("일몰", f"{current.get('sunset', 'N/A')}"),
@@ -356,43 +375,71 @@ class DisplayGenerator:
             ("풍속", f"{current.get('wind_speed', 'N/A')} m/s"),
         ]
 
+        col_width = 170
+        row_height = 50
+
         for i, (label, value) in enumerate(details):
-            y = start_y + i * 40
-            # 레이블
+            col = i % 2
+            row = i // 2
+
+            x = details_x + (col * col_width)
+            y = start_y + (row * row_height)
+
+            # 레이블 (작고 회색조)
             self.draw.text(
-                (details_x, y),
+                (x, y),
                 label,
-                fill=self.COLOR_BLACK,
-                font=self.font_small
+                fill=100,  # 회색
+                font=self.font_tiny
             )
-            # 값 (레이블 옆에)
+
+            # 값 (크고 진하게)
             self.draw.text(
-                (details_x + 100, y),
+                (x, y + 22),
                 value,
                 fill=self.COLOR_BLACK,
                 font=self.font_small
             )
 
     def _draw_daily_forecast(self, daily_forecast: List[Dict]):
-        """7일 예보 그리기 (하단 영역)"""
+        """7일 예보 그리기 (하단 영역) - InkyPi 카드 스타일"""
         if not daily_forecast:
             return
 
         # 구분선
-        y_line = self.height - 150
+        y_line = self.height - 140
         self.draw.line(
-            [(20, y_line), (self.width - 20, y_line)],
+            [(30, y_line), (self.width - 30, y_line)],
             fill=self.COLOR_BLACK,
-            width=2
+            width=3
         )
 
-        # 예보 카드들을 가로로 배치
-        card_width = (self.width - 80) // 7
-        start_x = 40
-        card_y = y_line + 20
+        # 제목
+        title = "7일 예보"
+        bbox = self.draw.textbbox((0, 0), title, font=self.font_small)
+        text_width = bbox[2] - bbox[0]
+        title_x = (self.width - text_width) // 2
+
+        self.draw.text(
+            (title_x, y_line + 10),
+            title,
+            fill=self.COLOR_BLACK,
+            font=self.font_small
+        )
+
+        # 예보 카드들
+        card_width = (self.width - 100) // 7
+        start_x = 50
+        card_y = y_line + 45
 
         for i, day in enumerate(daily_forecast[:7]):
             card_x = start_x + i * card_width
+
+            # 카드 배경 (선택사항)
+            # self.draw.rectangle(
+            #     [(card_x - 5, card_y - 5), (card_x + card_width - 10, card_y + 80)],
+            #     outline=self.COLOR_BLACK, width=1
+            # )
 
             # 요일
             day_name = day.get("day_name_kr", day.get("day_name", ""))
@@ -407,26 +454,41 @@ class DisplayGenerator:
                 font=self.font_tiny
             )
 
-            # 간단한 날씨 아이콘 (작은 원)
+            # 날씨 아이콘 (작은 원)
             icon_x = card_x + card_width // 2
-            icon_y = card_y + 35
-            icon_r = 12
+            icon_y = card_y + 30
+            icon_r = 14
             self.draw.ellipse(
                 [(icon_x - icon_r, icon_y - icon_r),
                  (icon_x + icon_r, icon_y + icon_r)],
-                fill=220, outline=self.COLOR_BLACK, width=2
+                fill=200, outline=self.COLOR_BLACK, width=2
             )
 
-            # 온도
-            temp_text = f"{day['temp_max']}°/{day['temp_min']}°"
-            temp_bbox = self.draw.textbbox((0, 0), temp_text, font=self.font_tiny)
-            temp_width = temp_bbox[2] - temp_bbox[0]
-            temp_x = card_x + (card_width - temp_width) // 2
+            # 온도 (위/아래)
+            temp_max = f"{day['temp_max']}°"
+            temp_min = f"{day['temp_min']}°"
+
+            # 최고 온도 (진하게)
+            bbox = self.draw.textbbox((0, 0), temp_max, font=self.font_tiny)
+            text_width = bbox[2] - bbox[0]
+            temp_x = card_x + (card_width - text_width) // 2
 
             self.draw.text(
-                (temp_x, card_y + 65),
-                temp_text,
+                (temp_x, card_y + 60),
+                temp_max,
                 fill=self.COLOR_BLACK,
+                font=self.font_tiny
+            )
+
+            # 최저 온도 (회색)
+            bbox = self.draw.textbbox((0, 0), temp_min, font=self.font_tiny)
+            text_width = bbox[2] - bbox[0]
+            temp_x = card_x + (card_width - text_width) // 2
+
+            self.draw.text(
+                (temp_x, card_y + 77),
+                temp_min,
+                fill=120,  # 회색
                 font=self.font_tiny
             )
 
