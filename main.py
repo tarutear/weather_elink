@@ -102,9 +102,19 @@ class WeatherDashboard:
 
             print(f"   {len(forecast)}개 예보 데이터 수신")
 
+            # 일별 예보 가져오기
+            print("📅 7일 예보 정보 가져오는 중...")
+            daily_forecast = self.weather_api.get_daily_forecast(
+                lat=self.config["location"]["latitude"],
+                lon=self.config["location"]["longitude"],
+                days=7
+            )
+
+            print(f"   {len(daily_forecast)}일 예보 데이터 수신")
+
             # 이미지 생성
             print("🖼  E-ink 디스플레이 이미지 생성 중...")
-            self.display_generator.generate_weather_display(current, forecast)
+            self.display_generator.generate_weather_display(current, forecast, daily_forecast)
 
             # 파일 저장
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

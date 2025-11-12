@@ -101,10 +101,52 @@ class WeatherAPI:
             print(f"예보 정보 가져오기 실패: {e}")
             return []
 
+    def get_daily_forecast(self, lat: Optional[float] = None, lon: Optional[float] = None,
+                           days: int = 7) -> List[Dict]:
+        """
+        일별 예보 정보 가져오기 (최대 7일)
+
+        Args:
+            lat: 위도 (옵션)
+            lon: 경도 (옵션)
+            days: 예보 일수 (기본값: 7일)
+
+        Returns:
+            일별 예보 정보 리스트
+        """
+        endpoint = f"{self.base_url}/forecast"
+
+        params = {
+            "appid": self.api_key,
+            "units": "metric",
+            "lang": "kr"
+        }
+
+        if lat and lon:
+            params["lat"] = lat
+            params["lon"] = lon
+        else:
+            params["q"] = f"{self.city},{self.country}"
+
+        try:
+            response = requests.get(endpoint, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            return self._parse_daily_forecast(data, days)
+
+        except requests.exceptions.RequestException as e:
+            print(f"일별 예보 정보 가져오기 실패: {e}")
+            return []
+
     def _parse_current_weather(self, data: Dict) -> Dict:
         """현재 날씨 데이터 파싱"""
         if not data:
             return {}
+
+        # 가시거리를 km로 변환 (API는 미터 단위)
+        visibility_m = data.get("visibility", 10000)
+        visibility_km = round(visibility_m / 1000, 1)
 
         return {
             "timestamp": datetime.now().isoformat(),
@@ -121,6 +163,7 @@ class WeatherAPI:
             "wind_speed": round(data["wind"]["speed"], 1),
             "wind_deg": data["wind"].get("deg", 0),
             "clouds": data["clouds"]["all"],
+            "visibility": visibility_km,
             "sunrise": datetime.fromtimestamp(data["sys"]["sunrise"]).strftime("%H:%M"),
             "sunset": datetime.fromtimestamp(data["sys"]["sunset"]).strftime("%H:%M"),
         }
@@ -148,6 +191,54 @@ class WeatherAPI:
             })
 
         return forecasts
+
+    def _parse_daily_forecast(self, data: Dict, days: int) -> List[Dict]:
+        """일별 예보 데이터 파싱 (3시간 간격 데이터를 일별로 그룹화)"""
+        if not data or "list" not in data:
+            return []
+
+        # 날짜별로 데이터 그룹화
+        daily_data = {}
+        for item in data["list"]:
+            dt = datetime.fromtimestamp(item["dt"])
+            date_key = dt.strftime("%Y-%m-%d")
+
+            if date_key not in daily_data:
+                daily_data[date_key] = {
+                    "date": dt,
+                    "temps": [],
+                    "weather_icons": [],
+                    "weather_mains": [],
+                    "descriptions": []
+                }
+
+            daily_data[date_key]["temps"].append(item["main"]["temp"])
+            daily_data[date_key]["weather_icons"].append(item["weather"][0]["icon"])
+            daily_data[date_key]["weather_mains"].append(item["weather"][0]["main"])
+            daily_data[date_key]["descriptions"].append(item["weather"][0]["description"])
+
+        # 일별 요약 생성
+        daily_forecasts = []
+        for date_key in sorted(daily_data.keys())[:days]:
+            day_data = daily_data[date_key]
+            dt = day_data["date"]
+
+            # 가장 빈번한 날씨 상태 선택 (낮 시간대 우선)
+            midday_icons = [icon for icon in day_data["weather_icons"] if icon.endswith('d')]
+            representative_icon = midday_icons[len(midday_icons)//2] if midday_icons else day_data["weather_icons"][0]
+
+            daily_forecasts.append({
+                "date": dt.strftime("%Y-%m-%d"),
+                "day_name": dt.strftime("%a"),  # Mon, Tue, Wed...
+                "day_name_kr": ["월", "화", "수", "목", "금", "토", "일"][dt.weekday()],
+                "temp_max": round(max(day_data["temps"]), 1),
+                "temp_min": round(min(day_data["temps"]), 1),
+                "weather_icon": representative_icon,
+                "weather_main": day_data["weather_mains"][0],
+                "weather_description": day_data["descriptions"][0]
+            })
+
+        return daily_forecasts
 
     def get_weather_icon_code(self, icon: str) -> str:
         """
