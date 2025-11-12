@@ -346,28 +346,28 @@ class DisplayGenerator:
         details_x = self.width // 2 + 50
         start_y = 80
 
-        # 작은 아이콘과 정보들을 세로로 배치
+        # 텍스트 레이블과 정보들을 세로로 배치
         details = [
-            ("🌅", f"{current.get('sunrise', 'N/A')}"),
-            ("🌇", f"{current.get('sunset', 'N/A')}"),
-            ("💧", f"{current.get('humidity', 'N/A')}%"),
-            ("📊", f"{current.get('pressure', 'N/A')} hPa"),
-            ("👁️", f"{current.get('visibility', 'N/A')} km"),
-            ("💨", f"{current.get('wind_speed', 'N/A')} m/s"),
+            ("일출", f"{current.get('sunrise', 'N/A')}"),
+            ("일몰", f"{current.get('sunset', 'N/A')}"),
+            ("습도", f"{current.get('humidity', 'N/A')}%"),
+            ("기압", f"{current.get('pressure', 'N/A')} hPa"),
+            ("가시거리", f"{current.get('visibility', 'N/A')} km"),
+            ("풍속", f"{current.get('wind_speed', 'N/A')} m/s"),
         ]
 
-        for i, (icon, value) in enumerate(details):
+        for i, (label, value) in enumerate(details):
             y = start_y + i * 40
-            # 아이콘
+            # 레이블
             self.draw.text(
                 (details_x, y),
-                icon,
+                label,
                 fill=self.COLOR_BLACK,
-                font=self.font_medium
+                font=self.font_small
             )
-            # 값
+            # 값 (레이블 옆에)
             self.draw.text(
-                (details_x + 50, y + 5),
+                (details_x + 100, y),
                 value,
                 fill=self.COLOR_BLACK,
                 font=self.font_small
