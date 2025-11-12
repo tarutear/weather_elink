@@ -145,8 +145,8 @@ class DisplayGenerator:
         now = datetime.now()
         weekday_kr = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"][now.weekday()]
 
-        # 위치 (큰 글씨)
-        location = current.get("location", "수원")
+        # 위치 (사용자 정의 이름 또는 API 이름)
+        location = current.get("display_name", current.get("location", "수원"))
         bbox = self.draw.textbbox((0, 0), location, font=self.font_large)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2

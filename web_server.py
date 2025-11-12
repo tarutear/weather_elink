@@ -86,6 +86,10 @@ def update_weather_display():
 
         dashboard_status["current_weather"] = current
 
+        # 사용자 정의 위치 이름 설정
+        if "display_name" in config["location"]:
+            current["display_name"] = config["location"]["display_name"]
+
         # 예보
         forecast = weather_api.get_forecast(
             lat=config["location"]["latitude"],

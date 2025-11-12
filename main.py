@@ -92,6 +92,10 @@ class WeatherDashboard:
 
             print(f"   {current['location']}: {current['temperature']}°C, {current['weather_description']}")
 
+            # 사용자 정의 위치 이름 설정
+            if "display_name" in self.config["location"]:
+                current["display_name"] = self.config["location"]["display_name"]
+
             # 예보 정보 가져오기
             print("📊 예보 정보 가져오는 중...")
             forecast = self.weather_api.get_forecast(
