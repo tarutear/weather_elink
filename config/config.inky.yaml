@@ -2,10 +2,10 @@
 # Pimoroni Inky Impression 7.3" 전용 설정
 
 location:
-  city: "Seoul"
+  city: "Suwon"
   country: "KR"
-  latitude: 37.5665
-  longitude: 126.9780
+  latitude: 37.2636
+  longitude: 127.0286
   timezone: "Asia/Seoul"
 
 weather_api:
