@@ -9,6 +9,7 @@ schedule>=1.2.0
 
 # Web UI
 Flask>=3.0.0
+playwright>=1.40.0
 
 # Optional: For actual E-ink hardware support
 # Uncomment when you have the hardware:

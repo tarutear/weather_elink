@@ -18,6 +18,7 @@ import yaml
 
 from src.weather_api import WeatherAPI
 from src.display_generator import DisplayGenerator
+from src.html_renderer import HTMLRenderer
 from src.scheduler import WeatherScheduler
 
 
@@ -114,14 +115,20 @@ class WeatherDashboard:
 
             # 이미지 생성
             print("🖼  E-ink 디스플레이 이미지 생성 중...")
-            self.display_generator.generate_weather_display(current, forecast, daily_forecast)
-
-            # 파일 저장
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = self.config["output"]["filename_pattern"].replace("{timestamp}", timestamp)
             filepath = self.output_dir / filename
 
-            self.display_generator.save(str(filepath))
+            # HTML 렌더러 우선 사용 (세련된 디자인)
+            try:
+                renderer = HTMLRenderer()
+                renderer.render_dashboard(current, daily_forecast, str(filepath))
+                print("✅ HTML 템플릿 렌더링 완료")
+            except Exception as e:
+                # 폴백: PIL 기반 렌더러
+                print(f"⚠️  HTML 렌더러 사용 불가, PIL 렌더러 사용: {e}")
+                self.display_generator.generate_weather_display(current, forecast, daily_forecast)
+                self.display_generator.save(str(filepath))
 
             # 이전 파일 정리 (옵션)
             if self.config["output"]["keep_history"]:

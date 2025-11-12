@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 800px;
+            height: 480px;
+            font-family: 'Nanum Gothic', 'Arial', sans-serif;
+            background: white;
+            color: black;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .location {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .date {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 25px;
+        }
+
+        .current-weather {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .weather-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border: 4px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            flex-shrink: 0;
+        }
+
+        .temp-info {
+            flex: 1;
+        }
+
+        .temperature {
+            font-size: 64px;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .feels-like {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .details {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .forecast-section {
+            border-top: 2px solid #333;
+            padding-top: 15px;
+        }
+
+        .forecast-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .forecast-card {
+            text-align: center;
+            padding: 8px 4px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .forecast-day {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .forecast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            border: 2px solid #999;
+            margin: 6px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .forecast-temp {
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .temp-max {
+            font-weight: bold;
+        }
+
+        .temp-min {
+            color: #666;
+        }
+
+        /* Weather icons using symbols */
+        .icon-clear::before { content: "☀"; }
+        .icon-clouds::before { content: "☁"; }
+        .icon-rain::before { content: "🌧"; }
+        .icon-snow::before { content: "❄"; }
+        .icon-mist::before { content: "🌫"; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="location">{{ current.location }}</div>
+        <div class="date">{{ date_str }}</div>
+    </div>
+
+    <div class="main-content">
+        <div class="current-weather">
+            <div class="weather-icon">
+                {% if 'clear' in current.weather_main.lower() or 'clear' in current.weather_description.lower() %}
+                ☀
+                {% elif 'cloud' in current.weather_main.lower() or 'cloud' in current.weather_description.lower() %}
+                ☁
+                {% elif 'rain' in current.weather_main.lower() or 'rain' in current.weather_description.lower() %}
+                💧
+                {% elif 'snow' in current.weather_main.lower() %}
+                ❄
+                {% elif 'mist' in current.weather_main.lower() or 'fog' in current.weather_main.lower() %}
+                〰
+                {% else %}
+                ●
+                {% endif %}
+            </div>
+            <div class="temp-info">
+                <div class="temperature">{{ current.temperature }}°</div>
+                <div class="feels-like">체감 {{ current.feels_like }}°</div>
+                <div class="description">{{ current.weather_description }}</div>
+            </div>
+        </div>
+
+        <div class="details">
+            <div class="detail-item">
+                <div class="detail-label">일출</div>
+                <div class="detail-value">{{ current.sunrise }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">일몰</div>
+                <div class="detail-value">{{ current.sunset }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">습도</div>
+                <div class="detail-value">{{ current.humidity }}%</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">기압</div>
+                <div class="detail-value">{{ current.pressure }} hPa</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">가시거리</div>
+                <div class="detail-value">{{ current.visibility }} km</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">풍속</div>
+                <div class="detail-value">{{ current.wind_speed }} m/s</div>
+            </div>
+        </div>
+    </div>
+
+    {% if daily_forecast %}
+    <div class="forecast-section">
+        <div class="forecast-title">7일 예보</div>
+        <div class="forecast-grid">
+            {% for day in daily_forecast[:7] %}
+            <div class="forecast-card">
+                <div class="forecast-day">{{ day.day_name_kr }}</div>
+                <div class="forecast-icon">
+                    {% if 'clear' in day.weather_main.lower() %}
+                    ☀
+                    {% elif 'cloud' in day.weather_main.lower() %}
+                    ☁
+                    {% elif 'rain' in day.weather_main.lower() %}
+                    💧
+                    {% elif 'snow' in day.weather_main.lower() %}
+                    ❄
+                    {% else %}
+                    ●
+                    {% endif %}
+                </div>
+                <div class="forecast-temp">
+                    <div class="temp-max">{{ day.temp_max }}°</div>
+                    <div class="temp-min">{{ day.temp_min }}°</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
