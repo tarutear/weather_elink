@@ -4,8 +4,8 @@
 location:
   city: "Suwon"
   country: "KR"
-  latitude: 37.2636
-  longitude: 127.0286
+  latitude: 37.259096
+  longitude: 127.079442
   timezone: "Asia/Seoul"
 
 weather_api:
