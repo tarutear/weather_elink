@@ -31,12 +31,20 @@ class HTMLRenderer:
 
     def _detect_render_method(self) -> str:
         """사용 가능한 렌더링 방법 탐지"""
+        # WeasyPrint 확인 (최우선 - 경량이고 Python native)
+        try:
+            import weasyprint
+            print("✅ WeasyPrint 감지됨 (경량 모드, Pi Zero 2 W 최적화)")
+            return 'weasyprint'
+        except ImportError:
+            pass
+
         # wkhtmltoimage 확인
         try:
             result = subprocess.run(['which', 'wkhtmltoimage'],
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
-                print("✅ wkhtmltoimage 감지됨 (경량 모드)")
+                print("✅ wkhtmltoimage 감지됨")
                 return 'wkhtmltoimage'
         except:
             pass
@@ -149,12 +157,54 @@ class HTMLRenderer:
             html_content: HTML 콘텐츠
             output_path: 출력 이미지 경로
         """
-        if self.render_method == 'wkhtmltoimage':
+        if self.render_method == 'weasyprint':
+            self._render_with_weasyprint(html_content, output_path)
+        elif self.render_method == 'wkhtmltoimage':
             self._render_with_wkhtmltoimage(html_content, output_path)
         elif self.render_method == 'chromium':
             self._render_with_chromium(html_content, output_path)
         else:
             print("⚠️  HTML 렌더링 도구가 없습니다. PIL 폴백 사용")
+            self._fallback_to_pil(html_content, output_path)
+
+    def _render_with_weasyprint(self, html_content: str, output_path: str):
+        """WeasyPrint로 렌더링 (Python native, 경량)"""
+        try:
+            from weasyprint import HTML
+            from PIL import Image
+            import io
+
+            # HTML 객체 생성
+            html = HTML(string=html_content)
+
+            # PNG로 직접 렌더링 (weasyprint 60.0+)
+            try:
+                # 최신 버전: write_png() 사용
+                png_bytes = html.write_png()
+
+                # PIL로 열어서 800x480 크기 조정
+                img = Image.open(io.BytesIO(png_bytes))
+                img = img.resize((800, 480), Image.Resampling.LANCZOS)
+                img.save(output_path, 'PNG')
+
+            except AttributeError:
+                # 구버전: PDF를 거쳐서 변환
+                pdf_bytes = html.write_pdf()
+
+                # pdf2image로 변환
+                try:
+                    from pdf2image import convert_from_bytes
+                    images = convert_from_bytes(pdf_bytes, fmt='png', size=(800, 480))
+                    if images:
+                        images[0].save(output_path, 'PNG')
+                except ImportError:
+                    raise Exception("pdf2image가 필요합니다: pip install pdf2image")
+
+            print(f"✅ HTML 렌더링 완료 (WeasyPrint): {output_path}")
+
+        except Exception as e:
+            print(f"❌ WeasyPrint 렌더링 실패: {e}")
+            print("   PIL 폴백으로 전환합니다...")
             self._fallback_to_pil(html_content, output_path)
 
     def _render_with_wkhtmltoimage(self, html_content: str, output_path: str):
