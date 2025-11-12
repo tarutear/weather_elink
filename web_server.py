@@ -18,7 +18,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.weather_api import WeatherAPI
 from src.display_generator import DisplayGenerator
-from src.html_renderer import HTMLRenderer
 
 # Flask 앱 초기화
 app = Flask(__name__)
@@ -111,21 +110,14 @@ def update_weather_display():
         filename = f"weather_{timestamp}.png"
         filepath = output_dir / filename
 
-        # HTML 렌더러 사용 (세련된 디자인)
-        try:
-            renderer = HTMLRenderer()
-            renderer.render_dashboard(current, daily_forecast, str(filepath))
-            print("✅ HTML 렌더러로 이미지 생성")
-        except Exception as e:
-            # 폴백: PIL 기반 렌더러
-            print(f"⚠️  HTML 렌더러 실패, PIL 렌더러 사용: {e}")
-            generator = DisplayGenerator(
-                width=config["display"]["width"],
-                height=config["display"]["height"],
-                color_mode=config["display"]["color_mode"]
-            )
-            generator.generate_weather_display(current, forecast, daily_forecast)
-            generator.save(str(filepath))
+        # PIL 렌더러 사용 (InkyPi 스타일 디자인)
+        generator = DisplayGenerator(
+            width=config["display"]["width"],
+            height=config["display"]["height"],
+            color_mode=config["display"]["color_mode"]
+        )
+        generator.generate_weather_display(current, forecast, daily_forecast)
+        generator.save(str(filepath))
 
         # 최신 이미지 링크 생성
         latest_link = output_dir / "latest.png"
