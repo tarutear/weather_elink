@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav a {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: #0056b3;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ 설정</h1>
+            <p class="subtitle">대시보드 설정을 변경하세요</p>
+            <div class="nav">
+                <a href="/">대시보드</a>
+                <a href="/settings">설정</a>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2>📍 위치 설정</h2>
+            <div class="info-box">
+                <p><strong>💡 팁:</strong> 정확한 좌표를 입력하면 더 정확한 날씨 정보를 받을 수 있습니다.</p>
+                <p>Google Maps에서 원하는 위치를 우클릭하여 좌표를 확인할 수 있습니다.</p>
+            </div>
+
+            <form id="location-form">
+                <div class="form-group">
+                    <label for="city">도시 이름</label>
+                    <input type="text" id="city" name="city" value="{{ config.location.city }}" required>
+                    <p class="help-text">예: Suwon, Seoul, Busan</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="latitude">위도 (Latitude)</label>
+                    <input type="number" id="latitude" name="latitude" step="0.000001"
+                           value="{{ config.location.latitude }}" required>
+                    <p class="help-text">예: 37.259096</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="longitude">경도 (Longitude)</label>
+                    <input type="number" id="longitude" name="longitude" step="0.000001"
+                           value="{{ config.location.longitude }}" required>
+                    <p class="help-text">예: 127.079442</p>
+                </div>
+
+                <button type="submit" class="btn">💾 위치 저장</button>
+                <div id="location-message"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>🔑 API 키 설정</h2>
+            <div class="info-box">
+                <p><strong>OpenWeatherMap API 키가 필요합니다.</strong></p>
+                <p>무료로 발급받을 수 있습니다: <a href="https://openweathermap.org/api" target="_blank">https://openweathermap.org/api</a></p>
+            </div>
+
+            <form id="api-form">
+                <div class="form-group">
+                    <label for="api-key">API Key</label>
+                    <input type="password" id="api-key" name="api_key"
+                           value="{{ api_key }}"
+                           placeholder="여기에 API 키를 입력하세요">
+                    <p class="help-text">API 키는 암호화되어 저장됩니다.</p>
+                </div>
+
+                <button type="submit" class="btn">🔐 API 키 저장</button>
+                <div id="api-message"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>ℹ️ 현재 설정</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">디스플레이 크기</td>
+                    <td style="padding: 12px;">{{ config.display.width }} × {{ config.display.height }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">색상 모드</td>
+                    <td style="padding: 12px;">{{ config.display.color_mode }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">디스플레이 타입</td>
+                    <td style="padding: 12px;">{{ config.display.display_type }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">업데이트 간격</td>
+                    <td style="padding: 12px;">{{ config.weather_api.update_interval }}초</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 위치 설정 저장
+        document.getElementById('location-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('button');
+            const messageDiv = document.getElementById('location-message');
+
+            btn.disabled = true;
+            btn.textContent = '💾 저장 중...';
+
+            const data = {
+                location: {
+                    city: document.getElementById('city').value,
+                    latitude: parseFloat(document.getElementById('latitude').value),
+                    longitude: parseFloat(document.getElementById('longitude').value)
+                }
+            };
+
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                btn.disabled = false;
+                btn.textContent = '💾 위치 저장';
+
+                if (result.status === 'success') {
+                    messageDiv.innerHTML = '<div class="message message-success">✅ ' + result.message + '</div>';
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    messageDiv.innerHTML = '<div class="message message-error">❌ ' + result.message + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.textContent = '💾 위치 저장';
+                messageDiv.innerHTML = '<div class="message message-error">❌ 오류: ' + error.message + '</div>';
+            });
+        });
+
+        // API 키 저장
+        document.getElementById('api-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('button');
+            const messageDiv = document.getElementById('api-message');
+
+            btn.disabled = true;
+            btn.textContent = '🔐 저장 중...';
+
+            const data = {
+                api_key: document.getElementById('api-key').value
+            };
+
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                btn.disabled = false;
+                btn.textContent = '🔐 API 키 저장';
+
+                if (result.status === 'success') {
+                    messageDiv.innerHTML = '<div class="message message-success">✅ ' + result.message + '</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="message message-error">❌ ' + result.message + '</div>';
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.textContent = '🔐 API 키 저장';
+                messageDiv.innerHTML = '<div class="message message-error">❌ 오류: ' + error.message + '</div>';
+            });
+        });
+    </script>
+</body>
+</html>

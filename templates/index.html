@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav a {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: #0056b3;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-idle { background: #6c757d; }
+        .status-updating { background: #ffc107; }
+        .status-success { background: #28a745; }
+        .status-error { background: #dc3545; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .preview-container {
+            grid-column: 1 / -1;
+        }
+
+        .preview-image {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            display: block;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌤️ Weather E-ink Dashboard</h1>
+            <p class="subtitle">웹 브라우저에서 날씨 대시보드를 관리하세요</p>
+            <div class="nav">
+                <a href="/">대시보드</a>
+                <a href="/settings">설정</a>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>상태</h2>
+                <div class="info-row">
+                    <span class="info-label">현재 상태</span>
+                    <span class="info-value">
+                        <span class="status-indicator status-{{ status.status }}"></span>
+                        <span id="current-status">{{ status.status }}</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">메시지</span>
+                    <span class="info-value" id="status-message">{{ status.message or '대기 중' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">마지막 업데이트</span>
+                    <span class="info-value" id="last-update">
+                        {% if status.last_update %}
+                            {{ status.last_update }}
+                        {% else %}
+                            없음
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>현재 날씨</h2>
+                {% if status.current_weather %}
+                <div class="info-row">
+                    <span class="info-label">위치</span>
+                    <span class="info-value">{{ status.current_weather.location }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">온도</span>
+                    <span class="info-value">{{ status.current_weather.temperature }}°C</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">날씨</span>
+                    <span class="info-value">{{ status.current_weather.weather_description }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">습도</span>
+                    <span class="info-value">{{ status.current_weather.humidity }}%</span>
+                </div>
+                {% else %}
+                <p style="color: #666; padding: 20px 0; text-align: center;">날씨 정보가 없습니다.<br>업데이트 버튼을 눌러주세요.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>위치 설정</h2>
+                <div class="info-row">
+                    <span class="info-label">도시</span>
+                    <span class="info-value">{{ config.location.city }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">위도</span>
+                    <span class="info-value">{{ config.location.latitude }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">경도</span>
+                    <span class="info-value">{{ config.location.longitude }}</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>수동 업데이트</h2>
+                <p style="color: #666; margin-bottom: 15px;">날씨 정보를 즉시 업데이트합니다.</p>
+                <button class="btn" id="update-btn" onclick="updateWeather()">
+                    🔄 지금 업데이트
+                </button>
+                <div id="update-message"></div>
+            </div>
+        </div>
+
+        <div class="card preview-container">
+            <h2>디스플레이 미리보기</h2>
+            <img src="/api/preview?t={{ status.last_update or '0' }}"
+                 alt="Weather Display Preview"
+                 class="preview-image"
+                 id="preview-image"
+                 onerror="this.style.display='none'; document.getElementById('no-preview').style.display='block';">
+            <p id="no-preview" style="display:none; text-align:center; padding: 40px; color: #666;">
+                미리보기 이미지가 없습니다.<br>업데이트 버튼을 눌러 이미지를 생성하세요.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let isUpdating = false;
+
+        function updateWeather() {
+            if (isUpdating) return;
+
+            isUpdating = true;
+            const btn = document.getElementById('update-btn');
+            const messageDiv = document.getElementById('update-message');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 업데이트 중...';
+            messageDiv.innerHTML = '<div class="message message-info">날씨 정보를 업데이트하고 있습니다...</div>';
+
+            fetch('/api/update', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    // 상태 모니터링 시작
+                    checkStatus();
+                })
+                .catch(error => {
+                    messageDiv.innerHTML = '<div class="message message-error">오류: ' + error.message + '</div>';
+                    btn.disabled = false;
+                    btn.textContent = '🔄 지금 업데이트';
+                    isUpdating = false;
+                });
+        }
+
+        function checkStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    // 상태 업데이트
+                    document.getElementById('current-status').textContent = data.status;
+                    document.getElementById('status-message').textContent = data.message || '대기 중';
+
+                    if (data.last_update) {
+                        document.getElementById('last-update').textContent = data.last_update;
+                    }
+
+                    // 버튼 상태 업데이트
+                    const btn = document.getElementById('update-btn');
+                    const messageDiv = document.getElementById('update-message');
+
+                    if (data.status === 'updating') {
+                        // 계속 확인
+                        setTimeout(checkStatus, 1000);
+                    } else if (data.status === 'success') {
+                        btn.disabled = false;
+                        btn.textContent = '🔄 지금 업데이트';
+                        messageDiv.innerHTML = '<div class="message message-success">✅ 업데이트 완료!</div>';
+                        isUpdating = false;
+
+                        // 이미지 새로고침
+                        const img = document.getElementById('preview-image');
+                        img.src = '/api/preview?t=' + new Date().getTime();
+                        img.style.display = 'block';
+                        document.getElementById('no-preview').style.display = 'none';
+
+                        // 페이지 새로고침
+                        setTimeout(() => location.reload(), 2000);
+                    } else if (data.status === 'error') {
+                        btn.disabled = false;
+                        btn.textContent = '🔄 지금 업데이트';
+                        messageDiv.innerHTML = '<div class="message message-error">❌ ' + data.message + '</div>';
+                        isUpdating = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Status check error:', error);
+                    setTimeout(checkStatus, 2000);
+                });
+        }
+
+        // 자동 상태 확인 (5초마다)
+        setInterval(() => {
+            if (!isUpdating) {
+                fetch('/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('current-status').textContent = data.status;
+                        document.getElementById('status-message').textContent = data.message || '대기 중';
+                        if (data.last_update) {
+                            document.getElementById('last-update').textContent = data.last_update;
+                        }
+                    });
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
