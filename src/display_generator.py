@@ -322,21 +322,21 @@ class DisplayGenerator:
         """현재 날씨 크게 그리기 (좌측 영역) - InkyPi 스타일"""
         start_y = 120
 
-        # 날씨 아이콘 (더 큰 원)
-        icon_x, icon_y = 120, start_y + 70
-        icon_radius = 70
+        # 날씨 아이콘 (더 큰 원) - 흰색 배경
+        icon_x, icon_y = 120, start_y + 60
+        icon_radius = 65
 
-        # 원 그리기
+        # 원 그리기 (흰색 또는 연한 회색)
         self.draw.ellipse(
             [(icon_x - icon_radius, icon_y - icon_radius),
              (icon_x + icon_radius, icon_y + icon_radius)],
-            fill=220, outline=self.COLOR_BLACK, width=4
+            fill=self.COLOR_WHITE, outline=self.COLOR_BLACK, width=4
         )
 
         # 온도 - 매우 큰 글씨
         temp_text = f"{current['temperature']}°"
         self.draw.text(
-            (icon_x + icon_radius + 30, icon_y - 60),
+            (icon_x + icon_radius + 25, icon_y - 55),
             temp_text,
             fill=self.COLOR_BLACK,
             font=self.font_xlarge
@@ -345,19 +345,19 @@ class DisplayGenerator:
         # 체감 온도
         feels_text = f"체감 {current['feels_like']}°"
         self.draw.text(
-            (50, icon_y + icon_radius + 25),
+            (50, icon_y + icon_radius + 20),
             feels_text,
             fill=self.COLOR_BLACK,
-            font=self.font_medium
+            font=self.font_small
         )
 
-        # 날씨 설명
+        # 날씨 설명 - 수평선 위로 이동
         desc = current.get("weather_description", "")
         self.draw.text(
-            (50, icon_y + icon_radius + 65),
+            (50, icon_y + icon_radius + 50),
             desc,
             fill=self.COLOR_BLACK,
-            font=self.font_medium
+            font=self.font_small
         )
 
     def _draw_weather_details(self, current: Dict):
@@ -454,14 +454,14 @@ class DisplayGenerator:
                 font=self.font_tiny
             )
 
-            # 날씨 아이콘 (작은 원)
+            # 날씨 아이콘 (작은 원) - 흰색 배경
             icon_x = card_x + card_width // 2
             icon_y = card_y + 30
             icon_r = 14
             self.draw.ellipse(
                 [(icon_x - icon_r, icon_y - icon_r),
                  (icon_x + icon_r, icon_y + icon_r)],
-                fill=200, outline=self.COLOR_BLACK, width=2
+                fill=self.COLOR_WHITE, outline=self.COLOR_BLACK, width=2
             )
 
             # 온도 (위/아래)
