@@ -123,6 +123,10 @@ class DisplayGenerator:
         # 세부 정보 (우측 영역) - 일출/일몰, 습도, 기압 등
         self._draw_weather_details(current)
 
+        # 중단: 시간별 예보 타임라인 (dashimage.png 스타일)
+        if forecast:
+            self._draw_hourly_timeline(forecast)
+
         # 하단: 7일 예보
         if daily_forecast:
             self._draw_daily_forecast(daily_forecast)
@@ -319,42 +323,46 @@ class DisplayGenerator:
         )
 
     def _draw_current_weather_large(self, current: Dict):
-        """현재 날씨 크게 그리기 (좌측 영역) - InkyPi 스타일"""
-        start_y = 120
+        """현재 날씨 크게 그리기 (좌측 영역) - dashimage.png 스타일"""
+        start_y = 115
 
-        # 날씨 아이콘 (더 큰 원) - 흰색 배경
-        icon_x, icon_y = 120, start_y + 60
-        icon_radius = 65
+        # 날씨 아이콘 (큰 원) - 왼쪽에 배치
+        icon_x, icon_y = 110, start_y + 50
+        icon_radius = 60
 
-        # 원 그리기 (흰색 또는 연한 회색)
+        # 원 그리기 (연한 회색 배경)
         self.draw.ellipse(
             [(icon_x - icon_radius, icon_y - icon_radius),
              (icon_x + icon_radius, icon_y + icon_radius)],
-            fill=self.COLOR_WHITE, outline=self.COLOR_BLACK, width=4
+            fill=220, outline=self.COLOR_BLACK, width=3
         )
 
-        # 온도 - 매우 큰 글씨
-        temp_text = f"{current['temperature']}°"
+        # 온도 - 매우 큰 글씨 (아이콘 오른쪽 중앙)
+        temp_text = f"{current['temperature']:.0f}°"
         self.draw.text(
-            (icon_x + icon_radius + 25, icon_y - 55),
+            (icon_x + icon_radius + 30, icon_y - 50),
             temp_text,
             fill=self.COLOR_BLACK,
             font=self.font_xlarge
         )
 
-        # 체감 온도
-        feels_text = f"체감 {current['feels_like']}°"
+        # 체감 온도 (온도 아래)
+        feels_text = f"체감 {current['feels_like']:.0f}°"
         self.draw.text(
-            (50, icon_y + icon_radius + 20),
+            (icon_x + icon_radius + 35, icon_y + 30),
             feels_text,
             fill=self.COLOR_BLACK,
             font=self.font_small
         )
 
-        # 날씨 설명 - 수평선 위로 이동
+        # 날씨 설명 (아이콘 아래)
         desc = current.get("weather_description", "")
+        bbox = self.draw.textbbox((0, 0), desc, font=self.font_small)
+        text_width = bbox[2] - bbox[0]
+        desc_x = icon_x - text_width // 2
+
         self.draw.text(
-            (50, icon_y + icon_radius + 50),
+            (desc_x, icon_y + icon_radius + 15),
             desc,
             fill=self.COLOR_BLACK,
             font=self.font_small
@@ -362,10 +370,10 @@ class DisplayGenerator:
 
     def _draw_weather_details(self, current: Dict):
         """세부 날씨 정보 그리기 (우측 영역) - InkyPi 스타일"""
-        details_x = self.width // 2 + 40
-        start_y = 125
+        details_x = self.width // 2 + 50
+        start_y = 120
 
-        # 그리드 레이아웃 (2열)
+        # 단일 컬럼 레이아웃 (더 컴팩트하게)
         details = [
             ("일출", f"{current.get('sunrise', 'N/A')}"),
             ("일몰", f"{current.get('sunset', 'N/A')}"),
@@ -375,19 +383,14 @@ class DisplayGenerator:
             ("풍속", f"{current.get('wind_speed', 'N/A')} m/s"),
         ]
 
-        col_width = 170
-        row_height = 50
+        row_height = 35
 
         for i, (label, value) in enumerate(details):
-            col = i % 2
-            row = i // 2
-
-            x = details_x + (col * col_width)
-            y = start_y + (row * row_height)
+            y = start_y + (i * row_height)
 
             # 레이블 (작고 회색조)
             self.draw.text(
-                (x, y),
+                (details_x, y),
                 label,
                 fill=100,  # 회색
                 font=self.font_tiny
@@ -395,10 +398,75 @@ class DisplayGenerator:
 
             # 값 (크고 진하게)
             self.draw.text(
-                (x, y + 22),
+                (details_x, y + 18),
                 value,
                 fill=self.COLOR_BLACK,
-                font=self.font_small
+                font=self.font_tiny
+            )
+
+    def _draw_hourly_timeline(self, forecast: List[Dict]):
+        """시간별 예보 타임라인 그리기 (dashimage.png 스타일)"""
+        if not forecast:
+            return
+
+        # 타임라인 영역
+        timeline_y = 280
+        timeline_height = 70
+        start_x = 40
+        end_x = self.width - 40
+
+        # 배경 영역 (연한 회색)
+        self.draw.rectangle(
+            [(start_x - 5, timeline_y - 5),
+             (end_x + 5, timeline_y + timeline_height)],
+            fill=240, outline=self.COLOR_BLACK, width=1
+        )
+
+        # 타임라인 (가로선)
+        line_y = timeline_y + 35
+        self.draw.line(
+            [(start_x, line_y), (end_x, line_y)],
+            fill=self.COLOR_BLACK, width=2
+        )
+
+        # 예보 항목 표시 (최대 12개)
+        num_points = min(len(forecast), 12)
+        spacing = (end_x - start_x) // (num_points - 1) if num_points > 1 else 0
+
+        for i in range(num_points):
+            f = forecast[i]
+            x = start_x + (i * spacing)
+
+            # 시간 표시 (타임라인 위)
+            time_str = f.get("time", "")[:5]  # "HH:MM" 형식
+            bbox = self.draw.textbbox((0, 0), time_str, font=self.font_tiny)
+            text_width = bbox[2] - bbox[0]
+
+            self.draw.text(
+                (x - text_width // 2, timeline_y - 2),
+                time_str,
+                fill=self.COLOR_BLACK,
+                font=self.font_tiny
+            )
+
+            # 날씨 아이콘 (작은 원)
+            icon_r = 8
+            self.draw.ellipse(
+                [(x - icon_r, line_y - icon_r),
+                 (x + icon_r, line_y + icon_r)],
+                fill=self.COLOR_WHITE, outline=self.COLOR_BLACK, width=2
+            )
+
+            # 온도 표시 (타임라인 아래)
+            temp_str = f"{f.get('temperature', 0):.0f}°"
+            bbox = self.draw.textbbox((0, 0), temp_str, font=self.font_tiny)
+            text_width = bbox[2] - bbox[0]
+
+            self.draw.text(
+                (x - text_width // 2, line_y + 15),
+                temp_str,
+                fill=self.COLOR_BLACK,
+                font=self.font_tiny
             )
 
     def _draw_daily_forecast(self, daily_forecast: List[Dict]):
@@ -406,31 +474,18 @@ class DisplayGenerator:
         if not daily_forecast:
             return
 
-        # 구분선
-        y_line = self.height - 140
+        # 구분선 (hourly timeline 아래로 조정)
+        y_line = 365
         self.draw.line(
             [(30, y_line), (self.width - 30, y_line)],
             fill=self.COLOR_BLACK,
-            width=3
+            width=2
         )
 
-        # 제목
-        title = "7일 예보"
-        bbox = self.draw.textbbox((0, 0), title, font=self.font_small)
-        text_width = bbox[2] - bbox[0]
-        title_x = (self.width - text_width) // 2
-
-        self.draw.text(
-            (title_x, y_line + 10),
-            title,
-            fill=self.COLOR_BLACK,
-            font=self.font_small
-        )
-
-        # 예보 카드들
-        card_width = (self.width - 100) // 7
-        start_x = 50
-        card_y = y_line + 45
+        # 예보 카드들 (제목 제거하고 더 컴팩트하게)
+        card_width = (self.width - 80) // 7
+        start_x = 40
+        card_y = y_line + 15
 
         for i, day in enumerate(daily_forecast[:7]):
             card_x = start_x + i * card_width
