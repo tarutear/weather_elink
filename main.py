@@ -18,6 +18,7 @@ import yaml
 
 from src.weather_api import WeatherAPI
 from src.display_generator import DisplayGenerator
+from src.html_renderer import HTMLRenderer
 from src.scheduler import WeatherScheduler
 
 
@@ -53,12 +54,23 @@ class WeatherDashboard:
             country=self.config["location"]["country"]
         )
 
-        # Display Generator 초기화
-        self.display_generator = DisplayGenerator(
-            width=self.config["display"]["width"],
-            height=self.config["display"]["height"],
-            color_mode=self.config["display"]["color_mode"]
-        )
+        # 렌더링 모드 확인 (HTML 우선, 폴백 PIL)
+        render_mode = self.config.get("display", {}).get("render_mode", "html")
+
+        if render_mode == "html":
+            # HTML 렌더러 초기화
+            print("🎨 HTML 렌더링 모드 사용")
+            self.renderer = HTMLRenderer(template_dir="templates")
+            self.use_html = True
+        else:
+            # PIL 렌더러 초기화
+            print("🎨 PIL 렌더링 모드 사용")
+            self.renderer = DisplayGenerator(
+                width=self.config["display"]["width"],
+                height=self.config["display"]["height"],
+                color_mode=self.config["display"]["color_mode"]
+            )
+            self.use_html = False
 
         # 출력 디렉토리 생성
         self.output_dir = Path(self.config["output"]["directory"])
@@ -122,9 +134,13 @@ class WeatherDashboard:
             filename = self.config["output"]["filename_pattern"].replace("{timestamp}", timestamp)
             filepath = self.output_dir / filename
 
-            # PIL 렌더러 사용 (InkyPi 스타일 디자인)
-            self.display_generator.generate_weather_display(current, forecast, daily_forecast)
-            self.display_generator.save(str(filepath))
+            if self.use_html:
+                # HTML 렌더러 사용 (dashimage.png 스타일)
+                self.renderer.render_dashboard(current, forecast, daily_forecast, str(filepath))
+            else:
+                # PIL 렌더러 사용 (폴백)
+                self.renderer.generate_weather_display(current, forecast, daily_forecast)
+                self.renderer.save(str(filepath))
 
             # 이전 파일 정리 (옵션)
             if self.config["output"]["keep_history"]:

@@ -21,6 +21,7 @@ display:
   color_mode: "7color"  # Inky Impression은 7색 지원!
   rotation: 0  # 0, 90, 180, 270
   display_type: "inky"  # Pimoroni Inky Impression
+  render_mode: "html"  # "html" 또는 "pil" (HTML이 더 정확한 디자인)
 
 output:
   directory: "output"
