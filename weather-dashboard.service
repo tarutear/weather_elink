@@ -1,0 +1,16 @@
+[Unit]
+Description=Weather E-ink Dashboard Auto Update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=p
+WorkingDirectory=/home/p/weather_elink
+Environment="PATH=/home/p/weather_elink/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/p/weather_elink/venv/bin/python /home/p/weather_elink/main.py --config config/config.inky.yaml --daemon
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
